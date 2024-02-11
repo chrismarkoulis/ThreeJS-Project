@@ -1,0 +1,25 @@
+{
+  "name": "threejs-project",
+  "version": "1.0.0",
+  "description": "Project for my MSc course",
+  "main": "script.js",
+  "scripts": {
+    "start": "vite"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chrismarkoulis/ThreeJS-Project.git"
+  },
+  "author": "Christos Markoulis",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chrismarkoulis/ThreeJS-Project/issues"
+  },
+  "homepage": "https://github.com/chrismarkoulis/ThreeJS-Project#readme",
+  "dependencies": {
+    "three": "^0.161.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.12"
+  }
+}

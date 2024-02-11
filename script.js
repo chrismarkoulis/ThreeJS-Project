@@ -1,9 +1,13 @@
-import * as THREE from './three.js/build/three.module.js';
+import * as THREE from 'three';
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import fontJson from './node_modules/three/examples/fonts/helvetiker_regular.typeface.json';
 
 let camera, scene, renderer, ground, samCharacter;
 const textureLoader = new THREE.TextureLoader();
 const raycaster = new THREE.Raycaster();
 const clickableObjects = [];
+const levelObjects = [];
 
 function initThreeJS() {
     scene = new THREE.Scene();
@@ -36,11 +40,11 @@ function initThreeJS() {
     samCharacter.position.y = 1;
     scene.add(samCharacter);
 
-   
+
     camera.position.z = 5;
     camera.position.y = 2;
 
-   
+
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
@@ -50,7 +54,8 @@ function initThreeJS() {
 
     document.addEventListener('mousemove', onMouseMove);
 
-   
+    initializeEventListeners();
+
     function animate() {
         requestAnimationFrame(animate);
 
@@ -58,6 +63,14 @@ function initThreeJS() {
     }
 
     animate();
+}
+
+function initializeEventListeners() {
+    clickableObjects.forEach(object => {
+        object.addEventListener('click', (event) => {
+            handleClick(object, event);
+        });
+    });
 }
 
 
@@ -79,21 +92,26 @@ function onMouseMove(event) {
 }
 
 
-function handleClick(event) {
-    const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-    const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+function handleClick(clickedObject, event) {
+    if (!camera) {
+        console.error('Camera not initialized');
+        return;
+    }
 
-    const vector = new THREE.Vector3(mouseX, mouseY, 0.5);
-    vector.unproject(camera);
-
-    raycaster.setFromCamera(new THREE.Vector2(mouseX, mouseY), camera);
-    const intersects = raycaster.intersectObjects(clickableObjects);
+    const mouse = new THREE.Vector2();
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObject(clickedObject);
 
     if (intersects.length > 0) {
-        const clickedObject = intersects[0].object;
-        clickedObject.raycast();
+        if (clickedObject.onClick) {
+            clickedObject.onClick();
+        }
     }
 }
+
+
 
 
 
@@ -125,41 +143,61 @@ const showScore = function () {
 }
 
 
-const createClickableObject = function (texturePath, x, y, z, domain, onClick) {
-    const geometry = new THREE.PlaneGeometry(1, 1, 1);
+function createClickableObject(texturePath, x, y, z, domain, onClick) {
+    const geometry = new THREE.PlaneGeometry(2, 2, 1);
     const texture = textureLoader.load(texturePath);
     const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
     const clickableObject = new THREE.Mesh(geometry, material);
 
     clickableObject.position.set(x, y, z);
-
-    
     clickableObject.onClick = onClick;
     clickableObject.domain = domain;
 
-    let raycastEnabled = true;
-   
-    clickableObject.raycast = function () {
-        console.log('Calling raycast');
-        if (!raycastEnabled || !raycaster) {
-            console.log('Raycast disabled or raycaster not defined');
-            return;
-        }
-        const intersects = raycaster.intersectObject(clickableObject);
-        if (intersects.length > 0) {
-            alert(`Κλικ στο ${this.domain}`);
-            this.onClick();
-            raycastEnabled = false;
-        }
-    };
-
-   
     if (domain !== "Sam") {
         clickableObjects.push(clickableObject);
-        clickableObject.addEventListener('click', clickableObject.raycast);
+        initializeEventListeners();
     }
 
     return clickableObject;
+}
+
+
+function createClickableText(text, x, y, z, domain) {
+    const loader = new FontLoader();
+    const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+    return new Promise((resolve, reject) => {
+        loader.load('./node_modules/three/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+            console.log(font);
+            const geometry = new TextGeometry(text, {
+                font: font,
+                size: 3.5,
+                height: 0.2
+            });
+
+            const textMesh = new THREE.Mesh(geometry, material);
+
+            textMesh.position.set(x, y, z);
+
+            textMesh.onClick = () => {
+                alert(`Κλικ στο ${domain}`);
+                window.open(domain, '_blank');
+            };
+
+            textMesh.raycast = function () {
+                const intersects = raycaster.intersectObject(textMesh);
+                if (intersects.length > 0) {
+                    textMesh.onClick();
+                }
+            };
+
+            clickableObjects.push(textMesh);
+
+            resolve(textMesh);
+        }, undefined, function (error) {
+            reject(error);
+        });
+    });
 }
 
 
@@ -167,12 +205,9 @@ const createClickableObject = function (texturePath, x, y, z, domain, onClick) {
 
 
 const addObjectsToScene = function (levelTitle, samCharacter) {
-    
-    scene.children.forEach(object => {
-        if (object !== camera && object !== ground) {
-            scene.remove(object);
-        }
-    });
+
+    levelObjects.forEach(object => scene.remove(object));
+    levelObjects.length = 0;
 
     switch (levelTitle) {
         case 'Επίπεδο 1 - Εξερεύνηση του Διαδικτύου':
@@ -180,31 +215,51 @@ const addObjectsToScene = function (levelTitle, samCharacter) {
                 window.open('https://www.youtube.com/', '_blank');
             });
 
-            const googleLogo = createClickableObject('./assets/google_logo.jpg', 5, 1, -15, 'https://www.google.com/', () => {
+            const googleLogo = createClickableObject('./assets/google_logo.jpg', 8, 1, -15, 'https://www.google.com/', () => {
                 window.open('https://www.google.com/', '_blank');
             });
 
-            scene.add(samCharacter);
-            scene.add(youtubeLogo);
-            scene.add(googleLogo);
+            //const youtubeLabel = createClickableText('Youtube', -8, 0, -9, 'https://www.youtube.com/');
+            // createClickableText('Youtube', -8, 0, -9, 'https://www.youtube.com/')
+            //     .then(textMesh => {
+            //         scene.add(textMesh); // Add the text mesh to the scene after it's resolved
+            //     })
+            //     .catch(error => {
+            //         console.error('Error creating clickable text:', error);
+            //     });
+
+
+            // createClickableText('Google', 5, 0, -14, 'https://www.google.com/')
+            //     .then(textMesh => {
+            //         scene.add(textMesh); // Add the text mesh to the scene after it's resolved
+            //     })
+            //     .catch(error => {
+            //         console.error('Error creating clickable text:', error);
+            //     });
+
+            //const googleLabel = createClickableText('Google', 5, 0, -14, 'https://www.google.com/');
+
+            scene.add(youtubeLogo, googleLogo, samCharacter);
+            levelObjects.push(youtubeLogo, googleLogo, samCharacter);
+
             break;
         case 'Επίπεδο 2 - Ασφαλείς Ιστοσελίδες':
-           
-            const loader = new THREE.FontLoader();
 
-            loader.load('https://threejsfundamentals.org/threejs/resources/threejs/fonts/helvetiker_regular.typeface.json', function (font) {
-                const googleTextGeometry = new THREE.TextGeometry('google.com', {
+            const loader = new FontLoader();
+
+            loader.load('./node_modules/three/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+                const googleTextGeometry = new TextGeometry('https://google.com', {
                     font: font,
-                    size: 2,
+                    size: 1.5,
                     height: 0.2,
                 });
 
                 const googleTextMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
                 const googleText = new THREE.Mesh(googleTextGeometry, googleTextMaterial);
-                googleText.position.set(0, 1, -5);
+                googleText.position.set(-8, 1, -3);
                 scene.add(googleText);
 
-                const secureTextGeometry = new THREE.TextGeometry('https', {
+                const secureTextGeometry = new TextGeometry('https', {
                     font: font,
                     size: 1,
                     height: 0.2,
@@ -212,10 +267,10 @@ const addObjectsToScene = function (levelTitle, samCharacter) {
 
                 const secureTextMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
                 const secureText = new THREE.Mesh(secureTextGeometry, secureTextMaterial);
-                secureText.position.set(0, 0.5, -5);
+                secureText.position.set(0, -1, -5);
                 scene.add(secureText);
 
-                const descriptionText = new THREE.TextGeometry('Αυτή είναι μια ασφαλής ιστοσελίδα.', {
+                const descriptionText = new TextGeometry('Αυτή είναι μια ασφαλής ιστοσελίδα.', {
                     font: font,
                     size: 0.5,
                     height: 0.2,
@@ -223,49 +278,56 @@ const addObjectsToScene = function (levelTitle, samCharacter) {
 
                 const descriptionMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
                 const description = new THREE.Mesh(descriptionText, descriptionMaterial);
-                description.position.set(0, 0, -5);
+                description.position.set(0, -2, -5);
                 scene.add(description);
+
+
+                scene.add(samCharacter);
+                levelObjects.push(googleText, secureText, description, samCharacter);
             });
 
-            scene.add(samCharacter);
+
             break;
         case 'Επίπεδο 3 - Αναγνώριση και Αποφυγή του διαδικτυακού εκφοβιστή':
             const cyberBully = createClickableObject('./assets/cyber_bully.jpg', 1, 1, -5, 'Κακές Λέξεις, Προσβλητικά Σχόλια', () => {
                 console.log('Κακές Λέξεις, Προσβλητικά Σχόλια');
                 scene.remove(cyberBully);
             });
-            
-            scene.add(cyberBully);
-            scene.add(samCharacter);
+
+            scene.add(cyberBully, samCharacter);
+            levelObjects.push(cyberBully, samCharacter)
             break;
         case 'Επίπεδο 4 - Ταίριασμα Ασφαλών Κωδικών Πρόσβασης':
             const safePasswords = [
                 { text: 'f_sdqRT34#$5O93Jlf', isSafe: true },
                 { text: 'gR78dR@#$sdff34', isSafe: true }
             ];
-        
+
             const unsafePasswords = [
                 { text: 'password123', isSafe: false },
                 { text: '123456', isSafe: false }
             ];
-        
+
             const passwordObjects = [];
-        
-           
+
+
             safePasswords.forEach((password, index) => {
                 const passwordObject = createDraggableObject(password.text, -3, 1, index * 2, password.isSafe);
                 passwordObjects.push(passwordObject);
                 scene.add(passwordObject);
+                levelObjects.push(passwordObject)
             });
-        
-            
+
+
             unsafePasswords.forEach((password, index) => {
                 const passwordObject = createDraggableObject(password.text, 3, 1, index * 2, password.isSafe);
                 passwordObjects.push(passwordObject);
                 scene.add(passwordObject);
+                levelObjects.push(passwordObject)
             });
-        
-            scene.add(samCharacter);            
+
+            scene.add(samCharacter);
+            levelObjects.push(samCharacter)
             break;
         default:
             console.error('Μη έγκυρος τίτλος επιπέδου:', levelTitle);
@@ -281,11 +343,11 @@ function createDraggableObject(text, x, y, z, isSafe) {
 
     passwordObject.position.set(x, y, z);
 
-    
+
     passwordObject.text = text;
     passwordObject.isSafe = isSafe;
 
-   
+
     makeDraggable(passwordObject);
 
     return passwordObject;
