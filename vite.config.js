@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/', // Set the base URL to root
+  base: 'https://chrismarkoulis.github.io/ThreeJS-Project',
   assetsInclude: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.svg', '**/*.ico'], // Include image formats
   build: {
     outDir: 'dist',
