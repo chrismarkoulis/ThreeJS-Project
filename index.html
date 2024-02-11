@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberSafe Adventure - Εξερεύνηση του Διαδικτύου</title>
+  <script type="module" crossorigin src="/assets/index-w_VRYyMJ.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-5fdzX_f2.css">
+</head>
+<body>
+    <div class="sidebar">
+        <a href="#" onclick="selectLevel(1)" class="selected">Επίπεδο 1</a>
+        <a href="#" onclick="selectLevel(2)">Επίπεδο 2</a>
+        <a href="#" onclick="selectLevel(3)">Επίπεδο 3</a>
+        <a href="#" onclick="selectLevel(4)">Επίπεδο 4</a>
+    </div>
+
+    <div class="container">
+        <h1 id="title">Εξερεύνηση του Διαδικτύου</h1>
+        <p id="desc">Καλώς ήρθες στη Διαδικτυακή Περιπέτεια! ο Σάμ, ο Ήρωας του Διαδικτύου, θα σε καθοδηγήσει σε μια ασφαλή εξερεύνηση του Διαδικτύου.</p>
+        <button id="startButton" onclick="startExploration()">Ξεκίνα την Περιπέτεια</button>
+        <div id="current-level">Επίπεδο 1</div>
+        <div id="score-container" style="position: fixed; top: 20px; right: 20px; color: white; display: none;">
+            Το Σκορ σου: <span id="score">0</span> πόντοι
+        </div>
+        
+        <div id="modal-container" onclick="closeModal()">
+            <div id="modal-content">
+                <h2>Εξερεύνηση του Διαδικτύου</h2>
+                <p>Καλώς ήρθες, Εξερευνητή του Διαδικτύου! Σε αυτό το επίπεδο θα μάθεις πώς να αναγνωρίζεις ασφαλείς ιστοσελίδες και πώς να εξερευνάς το Διαδίκτυο με ασφάλεια.</p>
+                <p>Ανακάλυψε τον ψηφιακό κόσμο με τον Σάμ, τον Ήρωα του Διαδικτύου, και να προσέχεις πάντα τους κίνδυνους!</p>
+            </div>
+            <button id="close-modal">Close</button>
+        </div>
+        <div id="scene-container"></div>
+    </div>
+    
+</body>
+</html>
