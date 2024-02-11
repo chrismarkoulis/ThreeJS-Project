@@ -1,7 +1,10 @@
 import * as THREE from 'three';
+import explorerPath from './assets/explorer.jpg';
+import googleLogoPath from './assets/google_logo.jpg';
+import youtubeLogoPath from './assets/youtube_logo.png';
+import cyberBullyPath from './assets/cyber_bully.jpg';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-import fontJson from './node_modules/three/examples/fonts/helvetiker_regular.typeface.json';
 
 let camera, scene, renderer, ground, samCharacter;
 const textureLoader = new THREE.TextureLoader();
@@ -26,7 +29,7 @@ function initThreeJS() {
     const samCharacterRadius = 1;
     const samGeometry = new THREE.CircleGeometry(samCharacterRadius, 32);
 
-    const samTexture = textureLoader.load('./assets/explorer.jpg');
+    const samTexture = textureLoader.load(explorerPath);
 
     const samMaterial = new THREE.MeshBasicMaterial({
         map: samTexture,
@@ -167,8 +170,7 @@ function createClickableText(text, x, y, z, domain) {
     const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
     return new Promise((resolve, reject) => {
-        loader.load('./node_modules/three/examples/fonts/helvetiker_regular.typeface.json', function (font) {
-            console.log(font);
+        loader.load('/assets/fonts.json', function (font) {
             const geometry = new TextGeometry(text, {
                 font: font,
                 size: 3.5,
@@ -211,11 +213,11 @@ const addObjectsToScene = function (levelTitle, samCharacter) {
 
     switch (levelTitle) {
         case 'Επίπεδο 1 - Εξερεύνηση του Διαδικτύου':
-            const youtubeLogo = createClickableObject('./assets/youtube_logo.png', -5, 1, -10, 'https://www.youtube.com/', () => {
+            const youtubeLogo = createClickableObject(youtubeLogoPath, -5, 1, -10, 'https://www.youtube.com/', () => {
                 window.open('https://www.youtube.com/', '_blank');
             });
 
-            const googleLogo = createClickableObject('./assets/google_logo.jpg', 8, 1, -15, 'https://www.google.com/', () => {
+            const googleLogo = createClickableObject(googleLogoPath, 8, 1, -15, 'https://www.google.com/', () => {
                 window.open('https://www.google.com/', '_blank');
             });
 
@@ -247,7 +249,7 @@ const addObjectsToScene = function (levelTitle, samCharacter) {
 
             const loader = new FontLoader();
 
-            loader.load('./node_modules/three/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+            loader.load('/assets/fonts.json', function (font) {
                 const googleTextGeometry = new TextGeometry('https://google.com', {
                     font: font,
                     size: 1.5,
@@ -289,7 +291,7 @@ const addObjectsToScene = function (levelTitle, samCharacter) {
 
             break;
         case 'Επίπεδο 3 - Αναγνώριση και Αποφυγή του διαδικτυακού εκφοβιστή':
-            const cyberBully = createClickableObject('./assets/cyber_bully.jpg', 1, 1, -5, 'Κακές Λέξεις, Προσβλητικά Σχόλια', () => {
+            const cyberBully = createClickableObject(cyberBullyPath, 1, 1, -5, 'Κακές Λέξεις, Προσβλητικά Σχόλια', () => {
                 console.log('Κακές Λέξεις, Προσβλητικά Σχόλια');
                 scene.remove(cyberBully);
             });
