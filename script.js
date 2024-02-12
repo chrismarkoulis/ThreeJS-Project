@@ -170,7 +170,7 @@ function createClickableText(text, x, y, z, domain) {
     const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
     return new Promise((resolve, reject) => {
-        loader.load('/assets/fonts.json', function (font) {
+        loader.load('https://threejsfundamentals.org/threejs/resources/threejs/fonts/helvetiker_regular.typeface.json', function (font) {
             const geometry = new TextGeometry(text, {
                 font: font,
                 size: 3.5,
@@ -249,7 +249,7 @@ const addObjectsToScene = function (levelTitle, samCharacter) {
 
             const loader = new FontLoader();
 
-            loader.load('/assets/fonts.json', function (font) {
+            loader.load('https://threejsfundamentals.org/threejs/resources/threejs/fonts/helvetiker_regular.typeface.json', function (font) {
                 const googleTextGeometry = new TextGeometry('https://google.com', {
                     font: font,
                     size: 1.5,
